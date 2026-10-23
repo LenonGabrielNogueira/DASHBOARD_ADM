@@ -1,0 +1,194 @@
+// Dashboard Administrativo Organizacional
+// PostgreSQL (Neon) + Prisma (multi-tenant por coluna `organizationId`)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL") // conexão com pooler (app)
+  directUrl = env("DIRECT_URL")   // conexão direta (migrations)
+}
+
+// ─────────────────────────────────────────────
+// Tenant
+// ─────────────────────────────────────────────
+
+model Organization {
+  id         String   @id @default(cuid())
+  clerkOrgId String   @unique
+  name       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  departments  Department[]
+  positions    Position[]
+  people       Person[]
+  assignments  PersonAssignment[]
+  snapshots    MetricSnapshot[]
+  auditLogs    AuditLog[]
+  schedules    ReportSchedule[]
+}
+
+// ─────────────────────────────────────────────
+// Estrutura organizacional
+// ─────────────────────────────────────────────
+
+model Department {
+  id             String    @id @default(cuid())
+  organizationId String
+  parentId       String?
+  name           String
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parent       Department?        @relation("DepartmentTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children     Department[]       @relation("DepartmentTree")
+  assignments  PersonAssignment[]
+
+  @@unique([organizationId, parentId, name])
+  @@index([organizationId, parentId])
+}
+
+model Position {
+  id             String    @id @default(cuid())
+  organizationId String
+  title          String
+  level          Int       @default(0) // 0 = topo da hierarquia
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignments  PersonAssignment[]
+
+  @@unique([organizationId, title])
+  @@index([organizationId, level])
+}
+
+// ─────────────────────────────────────────────
+// Pessoas
+// ─────────────────────────────────────────────
+
+model Person {
+  id             String    @id @default(cuid())
+  organizationId String
+  clerkUserId    String?   // nem toda pessoa terá login
+  managerId      String?   // hierarquia de reporte (lista de adjacência)
+  name           String
+  email          String
+  avatarUrl      String?
+  hiredAt        DateTime
+  terminatedAt   DateTime?
+  deletedAt      DateTime? // soft delete
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  manager      Person?            @relation("Reports", fields: [managerId], references: [id], onDelete: SetNull)
+  reports      Person[]           @relation("Reports")
+  assignments  PersonAssignment[]
+
+  @@unique([organizationId, email])
+  @@unique([organizationId, clerkUserId])
+  @@index([organizationId, managerId])
+  @@index([organizationId, hiredAt])
+  @@index([organizationId, terminatedAt])
+}
+
+// Estado da pessoa ao longo do tempo (cargo + departamento por período).
+// Base de todas as métricas históricas (ex.: headcount em uma data).
+// A regra "sem períodos sobrepostos" é uma exclusion constraint em SQL:
+// veja prisma/manual/assignment_no_overlap.sql
+model PersonAssignment {
+  id             String    @id @default(cuid())
+  organizationId String
+  personId       String
+  departmentId   String
+  positionId     String
+  startDate      DateTime
+  endDate        DateTime? // null = vigente
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  person       Person       @relation(fields: [personId], references: [id], onDelete: Cascade)
+  department   Department   @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  position     Position     @relation(fields: [positionId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, personId, startDate])
+  @@index([organizationId, departmentId, startDate, endDate])
+  @@index([organizationId, positionId])
+}
+
+// ─────────────────────────────────────────────
+// Métricas
+// ─────────────────────────────────────────────
+
+// Valores pré-agregados por dia (preenchidos por job do Inngest).
+// Ex.: key = "headcount", dimension = "all" | "dept:<id>"
+model MetricSnapshot {
+  id             String   @id @default(cuid())
+  organizationId String
+  date           DateTime @db.Date
+  key            String
+  dimension      String   @default("all")
+  value          Decimal  @db.Decimal(18, 4)
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, date, key, dimension])
+  @@index([organizationId, key, date])
+}
+
+// ─────────────────────────────────────────────
+// Auditoria (append-only: apenas inserts)
+// ─────────────────────────────────────────────
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  actorId        String   // clerkUserId de quem executou
+  action         String   // ex.: "person.update"
+  entity         String   // ex.: "Person"
+  entityId       String
+  before         Json?
+  after          Json?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, entity, entityId])
+  @@index([organizationId, actorId])
+}
+
+// ─────────────────────────────────────────────
+// Relatórios agendados
+// ─────────────────────────────────────────────
+
+enum ReportFrequency {
+  WEEKLY
+  MONTHLY
+}
+
+model ReportSchedule {
+  id             String          @id @default(cuid())
+  organizationId String
+  name           String
+  type           String          // ex.: "headcount_summary"
+  frequency      ReportFrequency
+  recipients     String[]
+  enabled        Boolean         @default(true)
+  lastRunAt      DateTime?
+  createdBy      String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, enabled])
+}
