@@ -1,8 +1,14 @@
 # Guia passo a passo: Dashboard Administrativo Organizacional
 
+> **REFERÊNCIA HISTÓRICA — não é o backlog vigente.** D-006, aprovada em 2026-11-04, consolida a arquitetura em `ARCHITECTURE.md`, as regras em `DATA_MODEL.md` e a execução em `../TASKS.md`. Este guia e seus exemplos/comandos permanecem para contexto, sem autorização de implementação, instalação, migração ou seed.
+>
+> MVP vigente: Dashboard, Analytics, Pessoas, Departamentos e Relatórios, sobre os oito modelos existentes. Operação com uma organização e isolamento/autorização no servidor. `Person`/`PersonAssignment` são as referências; cargos são catálogo de apoio. Multitenancy completo, organograma, auditoria funcional, snapshots, jobs e relatórios agendados são futuros, sem eliminar estruturas.
+>
+> As fases e o checklist abaixo pertencem ao plano original. A árvore `src/features`, o uso exclusivo de snapshots, o fluxo de Clerk Organizations/RBAC e a ordem banco/seed antes de auth não são a referência atual. O MVP usa `src/server/queries`, `src/server/actions` e validações em `src/lib/validations`, sem reestruturação automática. Autorização e isolamento vêm antes de expor dados.
+
 Stack: **Next.js + TypeScript + Prisma + PostgreSQL (Neon) + Clerk + Inngest + Vercel**
 
-> **Premissa deste guia:** o projeto é **multi-tenant** (várias organizações no mesmo sistema). Se for apenas uso interno, pule os trechos marcados com 🏢 e remova `organizationId` do schema.
+> **Premissa histórica deste guia:** projeto multi-tenant. A orientação original era pular trechos 🏢 e remover `organizationId` para uso interno. **Essa orientação foi substituída por D-006 e não deve ser executada:** preservar `organizationId`, os oito modelos e a validação organizacional no servidor, mesmo com uma organização operacional.
 >
 > **Aviso de versões:** Next.js, Prisma, Clerk e Inngest mudam APIs com frequência. Os trechos de código são a base de raciocínio. Sempre confira a documentação da versão que você instalar.
 
