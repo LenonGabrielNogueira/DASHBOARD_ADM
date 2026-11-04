@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { ModulePlaceholder } from "@/components/layout/module-placeholder";
+import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
+import { demoIndicators } from "@/lib/demo/dashboard";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
 export default function DashboardPage() {
-  return <ModulePlaceholder href="/dashboard" />;
+  return <DashboardOverview indicators={demoIndicators} />;
 }

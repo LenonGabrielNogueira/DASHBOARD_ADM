@@ -29,7 +29,12 @@ test("navega pelos cinco módulos no desktop com rota ativa e conteúdo próprio
     await expect(page).toHaveURL(href);
     await expect(page).toHaveTitle(`${title} | Dashboard ADM`);
     await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Módulo em desenvolvimento" })).toBeVisible();
+    if (href === "/dashboard") {
+      await expect(page.getByRole("region", { name: "Indicadores administrativos" })).toBeVisible();
+      await expect(page.getByRole("complementary", { name: "Dados demonstrativos" })).toBeVisible();
+    } else {
+      await expect(page.getByRole("heading", { name: "Módulo em desenvolvimento" })).toBeVisible();
+    }
     await expect(nav.locator('[aria-current="page"]')).toHaveCount(1);
     await expect(nav.getByRole("link", { name: title, exact: true })).toHaveAttribute("aria-current", "page");
     await expectNoOverflow(page);
