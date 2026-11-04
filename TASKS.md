@@ -37,7 +37,8 @@ D-006 é a referência vigente. O guia original é histórico. T0.1 a T0.4 e T1.
 
 ## Fase 2 — Interface sem banco
 
-- [ ] **T2.1** — Criar shell do aplicativo: layout, sidebar, header, navegação e rotas vazias (`/dashboard`, `/analytics`, `/pessoas`, `/departamentos`, `/relatorios`). **Aceite:** navegação funciona no desktop e no mobile; `globals.css` preservado.
+- [x] **T2.1** — Criar shell do aplicativo: layout, sidebar, header, navegação e rotas vazias (`/dashboard`, `/analytics`, `/pessoas`, `/departamentos`, `/relatorios`). **Aceite:** navegação funciona no desktop e no mobile; `globals.css` preservado.
+  **Conclusão revisada e aprovada em T2.1.1:** cinco rotas implementadas no grupo `(dashboard)`, com layout administrativo compartilhado, sidebar, header, título/descrição e estado de módulo em desenvolvimento. Menu responsivo com rota ativa, abertura/fechamento mobile, suporte a teclado e fechamento ao navegar. Lint, typecheck, sete testes Vitest (incluindo repetição), build e cinco cenários Playwright aprovados, incluindo navegação em 320, 768 e 1440 px sem overflow horizontal. Os 16 arquivos aprovados foram registrados no commit `dd0f4ef`, com staging explícito e checagem do índice sem erros. Página inicial, fontes locais, estilos globais, dependências e arquivos de produção anteriores preservados; sem integração com banco ou autenticação, sem gráficos/KPIs e sem push. T2.2 não iniciada.
 - [ ] **T2.2** — Adicionar cards de KPI, estrutura dos gráficos e tabelas com fixtures identificadas como **demonstração**. **Aceite:** componentes responsivos; sem dados simulados fingindo persistência.
 - [ ] **T2.3** — Adicionar loading, erro, estado vazio e acessibilidade básica. **Aceite:** navegação por teclado e títulos/labels consistentes.
 
