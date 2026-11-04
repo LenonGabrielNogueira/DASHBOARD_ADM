@@ -3,10 +3,15 @@
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { DemonstrativeSource, MonthlyAdmission } from "@/types/analytics";
 import { ChartContainer } from "./chart-container";
+import { resolveCollection } from "@/lib/ui-state";
+import type { CollectionInput } from "@/types/ui-state";
 
-export function AdmissionsChart({ data, source }: { data: readonly MonthlyAdmission[]; source: DemonstrativeSource }) {
+export function AdmissionsChart(props: CollectionInput<MonthlyAdmission> & { source: DemonstrativeSource }) {
+  const state = resolveCollection(props);
+  const data = state.status === "success" ? state.data : [];
+  const { source } = props;
   return (
-    <ChartContainer id="admissions" title="Admissões mensais" description="Admissões fictícias de maio a outubro de 2026. Outubro corresponde às 32 admissões do KPI demonstrativo." source={source}
+    <ChartContainer id="admissions" title="Admissões mensais" description={state.status === "success" ? "Admissões fictícias de maio a outubro de 2026. Outubro corresponde às 32 admissões do KPI demonstrativo." : "Série de admissões por mês. Os valores serão apresentados quando disponíveis."} source={source} status={state.status} context="admissions"
       summary={<dl className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 xl:grid-cols-6">{data.map((item) => <div key={item.month}><dt>{item.label}</dt><dd className="font-semibold text-slate-900">{item.admissions.toLocaleString("pt-BR")} admissões</dd></div>)}</dl>}>
       <div className="h-64 min-w-0 text-xs" aria-label="Linha de admissões mensais">
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>

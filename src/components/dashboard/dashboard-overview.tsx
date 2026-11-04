@@ -2,8 +2,17 @@ import { Info } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import type { KpiIndicator } from "@/types/dashboard";
 import { KpiGrid } from "./kpi-grid";
+import { collectionState } from "@/lib/ui-state";
+import type { CollectionState } from "@/types/ui-state";
+import { SectionFeedback } from "@/components/states/section-feedback";
+import { SectionErrorBoundary } from "@/components/states/section-error-boundary";
 
-export function DashboardOverview({ indicators }: { indicators: readonly KpiIndicator[] }) {
+type DashboardOverviewProps =
+  | { indicators: readonly KpiIndicator[]; state?: never }
+  | { indicators?: never; state: CollectionState<KpiIndicator> };
+
+export function DashboardOverview(props: DashboardOverviewProps) {
+  const state = props.state === undefined ? collectionState(props.indicators) : props.state;
   return (
     <>
       <PageHeader title="Dashboard" description="Uma visão geral da sua organização, reunida em um só lugar." />
@@ -19,7 +28,9 @@ export function DashboardOverview({ indicators }: { indicators: readonly KpiIndi
           <h2 id="indicadores-titulo" className="text-base font-semibold text-slate-900">Indicadores administrativos</h2>
           <p className="text-sm text-slate-500">Exemplos de indicadores atuais e admissões em um período demonstrativo fixo.</p>
         </div>
-        <KpiGrid indicators={indicators} />
+        <SectionErrorBoundary key={state.status} context="kpis">
+          {state.status === "success" ? <KpiGrid indicators={state.data} /> : <SectionFeedback context="kpis" status={state.status} />}
+        </SectionErrorBoundary>
       </section>
     </>
   );

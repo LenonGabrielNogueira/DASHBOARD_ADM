@@ -3,10 +3,15 @@
 import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { DemonstrativeSource, DepartmentDistribution } from "@/types/analytics";
 import { ChartContainer } from "./chart-container";
+import { resolveCollection } from "@/lib/ui-state";
+import type { CollectionInput } from "@/types/ui-state";
 
-export function DepartmentChart({ data, source }: { data: readonly DepartmentDistribution[]; source: DemonstrativeSource }) {
+export function DepartmentChart(props: CollectionInput<DepartmentDistribution> & { source: DemonstrativeSource }) {
+  const state = resolveCollection(props);
+  const data = state.status === "success" ? state.data : [];
+  const { source } = props;
   return (
-    <ChartContainer id="departments" title="Ativos por departamento" description="Distribuição fictícia de 1.176 colaboradores ativos nos 12 departamentos. Cada pessoa é representada uma única vez." source={source}
+    <ChartContainer id="departments" title="Ativos por departamento" description={state.status === "success" ? "Distribuição fictícia de 1.176 colaboradores ativos nos 12 departamentos. Cada pessoa é representada uma única vez." : "Distribuição de colaboradores ativos por departamento. Os valores serão apresentados quando disponíveis."} source={source} status={state.status} context="departments"
       summary={<dl className="grid gap-2 sm:grid-cols-2">{data.map((item) => <div key={item.id} className="min-w-0"><dt className="break-words">{item.name}</dt><dd className="font-semibold text-slate-900">{item.activePeople.toLocaleString("pt-BR")} ativos</dd></div>)}</dl>}>
       <div className="h-[28rem] min-w-0 text-xs" aria-label="Barras de colaboradores ativos por departamento">
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>

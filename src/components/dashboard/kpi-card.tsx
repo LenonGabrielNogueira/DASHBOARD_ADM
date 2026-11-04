@@ -28,7 +28,7 @@ export function KpiCard({ indicator }: { indicator: KpiIndicator }) {
           {available ? numberFormatter.format(indicator.value!) : "Indisponível"}
         </p>
         <p className="text-xs leading-5 break-words text-slate-500">{indicator.description}</p>
-        {indicator.source === "demonstration" && <span className="mt-auto w-fit rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-500">Demonstração</span>}
+        {indicator.source === "demonstration" && <span className="mt-auto w-fit rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">Demonstração</span>}
       </CardContent>
     </Card>
   );

@@ -3,13 +3,18 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import type { DemonstrativeSource, PeopleStatus } from "@/types/analytics";
 import { ChartContainer } from "./chart-container";
+import { resolveCollection } from "@/lib/ui-state";
+import type { CollectionInput } from "@/types/ui-state";
 
 const colors = { active: "#4f46e5", terminated: "#94a3b8" } as const;
 
-export function StatusChart({ data, source }: { data: readonly PeopleStatus[]; source: DemonstrativeSource }) {
+export function StatusChart(props: CollectionInput<PeopleStatus> & { source: DemonstrativeSource }) {
+  const state = resolveCollection(props);
+  const data = state.status === "success" ? state.data : [];
+  const { source } = props;
   const total = data.reduce((sum, item) => sum + item.people, 0);
   return (
-    <ChartContainer id="status" title="Situação dos colaboradores" description="Composição fictícia dos 1.248 colaboradores: ativos e desligados. Não representa evolução histórica." source={source}
+    <ChartContainer id="status" title="Situação dos colaboradores" description={state.status === "success" ? "Composição fictícia dos 1.248 colaboradores: ativos e desligados. Não representa evolução histórica." : "Distribuição entre colaboradores ativos e desligados. Os valores serão apresentados quando disponíveis."} source={source} status={state.status} context="status"
       summary={<><p>Total demonstrativo: <strong>{total.toLocaleString("pt-BR")} colaboradores.</strong></p><dl className="grid grid-cols-2 gap-4">{data.map((item) => <div key={item.status}><dt>{item.label}</dt><dd className="font-semibold text-slate-900">{item.people.toLocaleString("pt-BR")} colaboradores</dd></div>)}</dl></>}>
       <div className="h-64 min-w-0 text-xs" aria-label="Rosca da situação dos colaboradores">
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>

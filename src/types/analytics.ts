@@ -1,3 +1,5 @@
+import type { CollectionState } from "./ui-state";
+
 export interface DemonstrativeSource {
   readonly kind: "demonstration";
   readonly label: "Dados demonstrativos";
@@ -28,4 +30,11 @@ export interface AnalyticsData {
   readonly admissions: readonly MonthlyAdmission[];
   readonly departments: readonly DepartmentDistribution[];
   readonly statuses: readonly PeopleStatus[];
+}
+
+export interface AnalyticsSectionStates {
+  readonly source: DemonstrativeSource;
+  readonly admissions: CollectionState<MonthlyAdmission>;
+  readonly departments: CollectionState<DepartmentDistribution>;
+  readonly statuses: CollectionState<PeopleStatus>;
 }
