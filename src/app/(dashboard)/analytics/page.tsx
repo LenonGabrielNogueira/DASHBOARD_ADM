@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { ModulePlaceholder } from "@/components/layout/module-placeholder";
+import { AnalyticsOverview } from "@/components/charts/analytics-overview";
+import { demoAnalytics } from "@/lib/demo/analytics";
 
 export const metadata: Metadata = { title: "Analytics" };
 
 export default function AnalyticsPage() {
-  return <ModulePlaceholder href="/analytics" />;
+  return <AnalyticsOverview data={demoAnalytics} />;
 }

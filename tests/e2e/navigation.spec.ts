@@ -32,6 +32,9 @@ test("navega pelos cinco módulos no desktop com rota ativa e conteúdo próprio
     if (href === "/dashboard") {
       await expect(page.getByRole("region", { name: "Indicadores administrativos" })).toBeVisible();
       await expect(page.getByRole("complementary", { name: "Dados demonstrativos" })).toBeVisible();
+    } else if (href === "/analytics") {
+      await expect(page.getByRole("region", { name: "Admissões mensais", exact: true })).toBeVisible();
+      await expect(page.getByRole("complementary", { name: "Dados demonstrativos" })).toBeVisible();
     } else {
       await expect(page.getByRole("heading", { name: "Módulo em desenvolvimento" })).toBeVisible();
     }
