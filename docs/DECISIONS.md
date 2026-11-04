@@ -79,6 +79,16 @@ O histórico anterior do repositório também registrava a escolha entre uso int
 - **Reversão:** reverter somente o diff desta infraestrutura e seus registros em revisão, preservando arquivos de produção, schema/seed/SQL e licenças; sem reset, limpeza ou remoção de dados automática.
 - **Atualização em T1.2.1:** a implementação acima foi revisada e aprovada pelo usuário para versionamento, condicionada aos checks finais. Lint, typecheck, quatro testes Vitest, build e dois testes Chromium passaram novamente; infraestrutura registrada em `e631a49`. T1.2 concluída localmente. O status inicial e as limitações acima preservam o histórico da implementação; CI remota, cobertura do seed e testes autenticados continuam pendentes. Sem push ou início de T2.
 
+## D-008 — Conciliação de T2.3 e gráficos demonstrativos em Analytics
+
+- **Status:** direcionamento e conciliação autorizados expressamente pelo usuário nesta conversa; implementação sujeita à revisão, sem commits nesta etapa.
+- **Contexto:** o TASKS versionado e os relatórios anteriores chamavam T2.3 de loading, erro, estado vazio e acessibilidade. O usuário identifica o planejamento esperado como Gráficos e Analytics; essa numeração não foi localizada nos documentos atuais. D-006 e D-007 não impedem a conciliação nem exigem dados reais na fase demonstrativa.
+- **Decisão:** manter os registros de T2.1/T2.2; reservar T2.3 aos três gráficos demonstrativos em `/analytics` e transferir o escopo anterior, com sua descrição histórica, para T2.4. Não iniciar T2.4. T7.1 mantém Analytics com agregações reais e filtros, após segurança e preparação dos dados.
+- **Apresentação e dados:** reutilizar Recharts 3.10.1 instalado, Card, layout e fontes existentes. Fixtures separadas e tipadas, sem consultas: outubro/2026 com 32 admissões; 12 departamentos somando 1.176 ativos; situação com 1.176 ativos e 72 desligados, somando 1.248. Série temporal representa admissões, sem prometer histórico auditável do quadro de pessoas.
+- **Acessibilidade:** títulos, descrições, legendas/rótulos e resumo textual com todos os valores; identificação demonstrativa por gráfico. Não depender só de cor ou tooltip. Estados avançados e revisão complementar ficam para T2.4, sem dispensar requisitos básicos agora.
+- **Limites:** preservar Dashboard/KPIs, navegação, demais páginas, CSS global, dependências, schema/seed e autenticação. Sem tabelas, CRUD, banco, gráficos no Dashboard principal ou commits. Alteração documental pontual, sem reescrever o backlog ou decisões anteriores.
+- **Atualização em T2.3.1:** implementação e conciliação revisadas e aprovadas pelo usuário para versionamento. Lint, typecheck, 18 testes Vitest (incluindo repetição), build e 11 cenários Playwright passaram novamente; coerência das fixtures, resumos textuais e ausência de overflow nas três larguras confirmadas. Implementação registrada em `a7b5fd2`, com documentação em commit separado. O status inicial e os limites acima preservam o histórico da etapa de implementação; esta autorização permite somente os dois commits locais de encerramento. Sem push, novas funcionalidades ou início de T2.4. Execução remota da CI permanece pendente.
+
 ## Modelo para novas decisões
 
 ### D-XXX — Título
