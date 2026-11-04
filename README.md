@@ -1,6 +1,6 @@
 # Dashboard ADM — Dashboard Administrativo Organizacional
 
-> Status: base Next.js existente; funcionalidades do Dashboard ADM ainda não implementadas. T0.1 a T0.4 e T1.1 concluídas e aprovadas pelo usuário. Arquitetura em D-006; fontes locais revisadas em T1.1.1 e encerramento registrado em T1.1.2. T1.2 aguarda autorização própria.
+> Status: base Next.js existente; funcionalidades do Dashboard ADM ainda não implementadas. T0.1 a T0.4 e T1.1 concluídas e aprovadas pelo usuário. Arquitetura em D-006; T1.2 concluída localmente após revisão e validação em T1.2.1. Infraestrutura registrada no commit `e631a49`; execução remota da CI pendente, sem push.
 
 ## Objetivo
 
@@ -30,7 +30,7 @@ Criar um dashboard administrativo Full Stack simples, responsivo e seguro, usand
 
 T0.1 encontrou Next.js 16.4.3, React 19.3.0, TypeScript 5.9.3, Prisma/Client 6.19.0, Clerk 7.9.20, Tailwind/loader Turbopack 4.3.3, ESLint 9.39.5, shadcn 4.22.1, Base UI 1.9.0 e Recharts 3.10.1. A base contém a página padrão do Next e 15 componentes de UI (contagem corrigida na auditoria T1.1); Clerk está instalado, mas não integrado. Versões devem ser reconferidas antes de futuras mudanças.
 
-Vitest e Playwright são planejados: os scripts existem, mas os executores não estavam instalados na auditoria. CI ainda é apenas planejamento. Inngest, React Flow e Dagre já instalados permanecem preservados para recursos futuros.
+Vitest e Playwright estavam ausentes em T0.1/T1.1 e foram instalados em T1.2, junto à React Testing Library e jsdom. O workflow CI foi criado e revisado localmente; aguarda execução remota. Os resultados locais estão documentados abaixo. Inngest, React Flow e Dagre permanecem preservados para recursos futuros.
 
 - Next.js App Router + React + TypeScript, reutilizando as versões já instaladas **quando compatíveis**.
 - Tailwind CSS, shadcn/ui e Lucide.
@@ -98,12 +98,35 @@ As definições de contagem única, desligamento, vínculo vigente, datas e limi
 - T1.1.2 registra fontes e documentação em dois commits separados, na branch existente, sem alterar dependências, autenticação, banco ou funcionalidades de negócio.
 - O encerramento de T1.1 foi aprovado pelo usuário com testes automatizados e cobertura complementar de tipos explicitamente pendentes. Não interpretar os passes de lint/typecheck/build como aprovação de testes ou do MVP completo.
 
-### Pendências para T1.2 — ainda não iniciada
+### Pendências identificadas no encerramento de T1.1 — histórico
 
 - Configuração de Vitest, testes efetivos e funcionamento de `npm test`.
 - Proposta de preparação do Playwright; fluxos autenticados/E2E permanecem planejados em T8.1.
 - Cobertura complementar de tipos para configurações e scripts fora do `include` atual, incluindo `next.config.ts` e `prisma/seed.ts`, sem executar seed.
 - Aprovação específica antes de instalar ferramentas ausentes. A dependência Faker e a segurança do seed continuam sujeitas à revisão em T4.3; não mascarar erros com scripts que apenas retornam sucesso. A limitação de `check:raw` segue diagnosticada, sem alteração nesta tarefa.
+
+## Testes e integração contínua — T1.2 concluída localmente
+
+Dependências de desenvolvimento fixadas: Vitest 4.1.12, Vite 7.3.7, plugin React 5.2.0, React Testing Library 16.3.3, DOM Testing Library 10.4.2, jest-dom 7.0.1, jsdom 27.4.0 e Playwright 1.58.2. As versões diretas de produção foram preservadas. A linha Vitest 4 mantém compatibilidade com os tipos Node existentes; a CI usa Node 24, também compatível com `cn` e jsdom. Playwright usa Chromium 1208.
+
+```sh
+npm ci
+npm run lint
+npm run typecheck
+npm test
+npm run build
+npm run test:e2e
+```
+
+- `npm test` executa quatro testes reais: composição/precedência de classes de `cn` e interação/estado desabilitado do `Button`. O Vitest usa jsdom, transformação JSX, alias `@` e limpeza do DOM entre testes; E2E não entra na descoberta de testes unitários. Não usar essa suíte para Server Components assíncronos.
+- `npm run typecheck` verifica a aplicação e chama `typecheck:tooling`, que inclui `next.config.ts`, configurações de testes, setup e suítes fora de `src/`, via `tsconfig.tooling.json`. O seed permanece explicitamente fora: Faker e cliente Prisma gerado estão ausentes. Não foram criados stubs para esconder esse diagnóstico, nem executados seed/geração/migrations.
+- E2E exige build prévio. `playwright.config.ts` inicia e encerra o servidor de produção em `127.0.0.1:3100`, sem reutilizar outro servidor. Dois cenários cobrem a página pública e o retorno após um 404; links externos não são seguidos e requisições HTTP/HTTPS fora da origem local são bloqueadas. Nenhuma credencial Clerk, conexão de banco ou serviço externo é necessário aos testes.
+- Se o Chromium compatível não estiver disponível, instalar separadamente com `npx playwright install chromium` após autorização do ambiente. Não foi necessário baixar navegadores nesta execução local. Relatórios, traces, screenshots e estados autenticados continuam ignorados pelo Git.
+- `.github/workflows/ci.yml` executa instalação por `npm ci`, lint, typecheck, unitários e build no job `quality`. O job separado `e2e` instala Chromium/dependências de sistema, constrói a aplicação e executa os dois cenários. Permissão somente de leitura do conteúdo, sem secrets. A geração automática do Prisma no postinstall é desativada por variável do processo.
+- Validação local: lint, typecheck (aplicação e tooling), quatro testes Vitest e build sem rede aprovados. Dois cenários E2E passaram; no sandbox Windows, o encerramento do servidor temporário precisou de permissão adicional. `npm ci --dry-run --ignore-scripts --no-audit --no-fund` confirmou a consistência do lockfile, sem substituir uma execução limpa da CI Linux.
+- Permanecem avisos de peers na árvore OpenTelemetry existente e aviso de API depreciada do Playwright no Node 26 local; não foram feitas correções laterais nessas dependências. O npm ajustou `@types/estree` de 1.0.9 para 1.0.10 ao resolver a infraestrutura. A CI remota, fluxos autenticados de T8.1 e revisão do seed de T4.3 permanecem pendentes. T2 não foi iniciada.
+
+T1.2.1 confirmou a branch `feat/T1.1-setup` a partir de `680ca3a`, preservação das dependências diretas de produção e proteção de ambientes/artefatos. Lint, typecheck, quatro testes Vitest (incluindo repetição), build e dois testes Chromium passaram novamente; `git diff --check` e a checagem do índice passaram. O setup existente permanece em `tests/setup.ts`, referenciado pelo Vitest. A cobertura é inicial e pública: não inclui seed Prisma, fluxos autenticados nem aprovação de execução no GitHub Actions.
 
 ## Definição de pronto (MVP)
 

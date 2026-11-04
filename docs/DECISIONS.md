@@ -67,6 +67,18 @@
 
 O histórico anterior do repositório também registrava a escolha entre uso interno e SaaS multi-cliente e a definição de provedor de email para relatórios agendados. D-006 resolve o primeiro ponto para o MVP como operação de uma organização; o segundo continua adiado junto aos agendamentos, sem seleção de provedor.
 
+## D-007 — Infraestrutura de testes e CI sem serviços de negócio
+
+- **Status:** implementada para revisão; instalação e CI autorizadas expressamente pelo usuário no escopo ampliado de T1.2. Não constitui aprovação do diff final nem início de T2.
+- **Contexto:** scripts Vitest/Playwright existiam sem executores; typecheck não incluía configurações ou testes externos a `src/`; CI era apenas planejamento em T1.3.
+- **Decisão:** Vitest 4.1.12 + Vite 7.3.7/plugin React 5.2.0, RTL 16.3.3/DOM 10.4.2/jest-dom 7.0.1 e jsdom 27.4.0 para testes unitários/componentes síncronos. Playwright 1.58.2 usa o Chromium 1208 já disponível; Server Components assíncronos e fluxos autenticados permanecem no E2E de fases próprias. Nenhum componente de produção é alterado para criar testes.
+- **Tipos:** manter tsconfig da aplicação e adicionar `tsconfig.tooling.json` para configurações e suítes. O script principal executa ambas as checagens. Seed com dependências incompletas é exclusão explícita e documentada, sem stubs, execução ou geração Prisma. Sua validação integral fica pendente para T4; não declarar cobertura completa do repositório.
+- **CI:** workflow entregue junto de T1.2, conciliando a tarefa T1.3 existente. Node 24; jobs separados quality e E2E, instalação reproduzível pelo lockfile, privilégios de leitura e sem credenciais. `PRISMA_SKIP_POSTINSTALL_GENERATE` evita geração automática; não há migrations/seed. Testes de browser usam somente servidor local de produção e bloqueiam requisições externas.
+- **Impacto:** somente infraestrutura, testes e documentação; oito dependências dev fixadas, declarações/versões diretas de produção preservadas. Ajuste transitivo de `@types/estree` 1.0.9 para 1.0.10 pelo npm. Avisos existentes de peers OpenTelemetry foram registrados sem alterações laterais. Não instalar Faker, cobertura visual, provedores ou ferramentas de métricas sem necessidade aprovada.
+- **Validação e limites:** checks locais e `npm ci` em dry-run; execução Linux/GitHub ainda pendente. No sandbox Windows, esbuild precisou de acesso de leitura adicional e o término da árvore temporária do servidor E2E exigiu permissão adicional. Sem commits, push ou operações de banco nesta etapa.
+- **Reversão:** reverter somente o diff desta infraestrutura e seus registros em revisão, preservando arquivos de produção, schema/seed/SQL e licenças; sem reset, limpeza ou remoção de dados automática.
+- **Atualização em T1.2.1:** a implementação acima foi revisada e aprovada pelo usuário para versionamento, condicionada aos checks finais. Lint, typecheck, quatro testes Vitest, build e dois testes Chromium passaram novamente; infraestrutura registrada em `e631a49`. T1.2 concluída localmente. O status inicial e as limitações acima preservam o histórico da implementação; CI remota, cobertura do seed e testes autenticados continuam pendentes. Sem push ou início de T2.
+
 ## Modelo para novas decisões
 
 ### D-XXX — Título
